@@ -84,11 +84,9 @@
                         $('.products-container').empty(); 
                         console.log(searchBarValue, brandDropdownValue);
                         if (products.length === 0) {
-                            // Display Bootstrap alert for no products found
                             var alertDiv = $('<div>').addClass('alert alert-primary').attr('role', 'alert').text('No products found');
                             $('.products-container').append(alertDiv);
                         } else {
-                            // Populate products if products are found
                             populateProducts(products);
                         }
                     },

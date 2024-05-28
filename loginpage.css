@@ -75,3 +75,10 @@ h5 {
     cursor: pointer;
     text-align: center;
 }
+
+.alert {
+    margin-top: 20px;
+    width: 400px;
+    text-align: center;
+    margin-left: 37%;
+}
