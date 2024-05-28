@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Central Circuit</title>
+    <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    
+    <link href="receipt.css" rel="stylesheet">
+</head>
+<body>
+    <div class="col-md-12 center1">   
+        <div class="row">  
+               <div class="receipt-main col-xs-10 col-sm-10 col-md-6 col-xs-offset-1 col-sm-offset-1 col-md-offset-3">
+                   <div class="row">
+                       <div class="receipt-header">
+                           <div class="col-xs-6 col-sm-6 col-md-6">
+                               <div class="receipt-left">
+                                   <img class="img-responsive" alt="cclogo" src="logo.png" style="width: 200px; border-radius: 43px;">
+                               </div>
+                           </div>
+                           <div class="col-xs-6 col-sm-6 col-md-6 text-right">
+                               <div class="receipt-right">
+                                   <h5>Circuit Central</h5>
+                                   <p>+63 9477455428<i class="fa fa-phone"></i></p>
+                                   <p>circuitcentral@gmail.com <i class="fa fa-envelope-o"></i></p>
+                                   <p>Philippines<i class="fa fa-location-arrow"></i></p>
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+                   
+                   <div class="row" id="customerInfo">
+                       <div class="receipt-header receipt-header-mid">
+                           <div class="col-xs-8 col-sm-8 col-md-8 text-left">
+                               <div class="receipt-right">
+                                   <h5 id="customerName"></h5>
+                                   <p><b>Address: </b><span id="customerAddress"></span></p>
+                               </div>
+                           </div>
+                           <div class="col-xs-4 col-sm-4 col-md-4">
+                               <div class="receipt-left">
+                                   <h3>INVOICE NO: <span id="invoice"></span></h3>
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+                   
+                   <div>
+                       <table class="table table-bordered">
+                           <thead>
+                               <tr>
+                                   <th>Product Name</th>
+                                   <th>Quantity</th>
+                                   <th>Amount</th>
+                               </tr>
+                           </thead>
+                           <tbody id="orderItemsBody"> 
+                        </tbody>
+                       </table>
+                   </div>
+                   
+                   <div class="row">
+                       <div class="receipt-header receipt-header-mid receipt-footer">
+                           <div class="col-xs-8 col-sm-8 col-md-8 text-left">
+                               <div class="receipt-right">
+                                   <p><b>Date: </b><span id="date"></span></p>
+                                   <h5 style="color:  #F4CDD0;">Thanks for shopping.!</h5>
+                               </div>
+                           </div>
+                           <div class="col-xs-4 col-sm-4 col-md-4">
+                               <div class="receipt-left">
+                                   <h1>© Circuit Central</h1>
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+                   
+               </div>    
+           </div>
+       </div>
+
+    <div class="container mt-5 text-center">
+        <button class="btn btn-info" onclick="homepage()">Go Back to Hompage</button>
+    </div>
+    
+    <script src='https://netdna.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js'></script>
+    <script>
+        var customerID;
+        var orderID;
+        var date;
+        var totalAmount;
+
+        $(document).ready(function() {
+                getQueryParams();
+        });
+
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            customerID = params.get('customerID');
+            orderID = params.get('orderID');
+            document.getElementById('invoice').textContent = orderID;
+            fetchCustomerInfo(customerID);
+            fetchOrderItem(orderID);
+            fetchDateAndTotal(orderID);
+        }
+
+        function fetchCustomerInfo(customerID) {
+            $.ajax({
+                type: "GET",
+                url: 'http://localhost/Circuit Central/getCustomerData.php',
+                data: {customerID: customerID },
+                success: function (response) {
+                    var info = JSON.parse(response);
+                    populateInfo(info);
+                },
+                error: function (error) {
+                    console.error("Error loading customer data:", status, error);
+                }
+            });
+        }
+
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        function populateInfo(info) {
+            const capitalizedFirstName = capitalizeFirstLetter(info.FirstName);
+            const capitalizedLastName = capitalizeFirstLetter(info.LastName);
+            const capitalizedStreet = capitalizeFirstLetter(info.Street);
+            const capitalizedCity = capitalizeFirstLetter(info.City);
+
+            document.getElementById('customerName').textContent = `${capitalizedFirstName} ${capitalizedLastName}`;
+            document.getElementById('customerAddress').textContent = `${capitalizedStreet}, ${capitalizedCity}, ${info.ZipCode}`;
+        }
+
+        function fetchOrderItem(orderID) {
+            $.ajax({
+                type: "POST",
+                url: 'http://localhost/Circuit%20Central/getOrderItems.php',
+                data: { orderID: orderID },
+                success: function(response) {
+                    var orderItems = JSON.parse(response);
+                    console.log(response);
+                    populateOrderItems(orderItems);
+                    
+                },
+                error: function(error) {
+                    console.error("Error loading order items:", error);
+                }
+            });
+        }
+
+        function populateOrderItems(orderItems) {
+            var tbody = document.getElementById('orderItemsBody');
+            tbody.innerHTML = "";
+            orderItems.forEach(function(item) {
+                var row = document.createElement('tr');
+                var productNameCell = document.createElement('td');
+                productNameCell.className = "col-md-6";
+                productNameCell.textContent = item.ProductName;
+                row.appendChild(productNameCell);
+                var quantityCell = document.createElement('td');
+                quantityCell.className = "col-md-2";
+                quantityCell.textContent = item.Quantity;
+                row.appendChild(quantityCell);
+                var amountCell = document.createElement('td');
+                amountCell.className = "col-md-4";
+                amountCell.textContent = item.Quantity * item.Price; 
+                row.appendChild(amountCell);
+                tbody.appendChild(row);
+            });
+        }
+
+        function fetchDateAndTotal(orderID) {
+            $.ajax({
+                type: "POST",
+                url: 'http://localhost/Circuit%20Central/getDateAndTotal.php',
+                data: { orderID: orderID },
+                success: function(response) {
+                    var dateAndTotal = JSON.parse(response);
+                    console.log(response);
+                    populateDateAndTotal(dateAndTotal);
+                },
+                error: function(error) {
+                    console.error("Error loading order items:", error);
+                }
+            });
+        }
+
+        function populateDateAndTotal(dateAndTotal) {
+            var tbody = document.getElementById('orderItemsBody');
+
+            var total = dateAndTotal.TotalAmount;
+            var tr = document.createElement('tr');
+
+            var td1 = document.createElement('td');
+            tr.appendChild(td1);
+
+            var td2 = document.createElement('td');
+            td2.className = "text-right";
+            var h2 = document.createElement('h2');
+            h2.textContent = "Total:";
+            td2.appendChild(h2);
+            tr.appendChild(td2);
+
+            var td3 = document.createElement('td');
+            td3.className = "text-left text-danger"; 
+            var price = document.createElement('h2'); 
+            price.textContent = "₱" + total.toFixed(2); 
+            td3.appendChild(price);
+            tr.appendChild(td3);
+
+            tbody.appendChild(tr);
+
+            document.getElementById('date').textContent = dateAndTotal.OrderDate;
+        }
+
+        function homepage() {
+            window.location.href = "homepage.html";
+        }
+
+    </script>
+</body>
+</html>
+
